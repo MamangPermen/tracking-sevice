@@ -7,7 +7,7 @@ package mock
 import (
 	reflect "reflect"
 
-	repository "github.com/MamangPermen/tracking-service/internal/repository"
+	model "github.com/MamangPermen/tracking-service/internal/model"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -34,17 +34,17 @@ func (m *MockTrackingRepository) EXPECT() *MockTrackingRepositoryMockRecorder {
 	return m.recorder
 }
 
-// GetResiStatus mocks base method.
-func (m *MockTrackingRepository) GetResiStatus(id string) (*repository.Resi, error) {
+// GetResiHistory mocks base method.
+func (m *MockTrackingRepository) GetResiHistory(resiID string) (*model.TrackingHistory, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResiStatus", id)
-	ret0, _ := ret[0].(*repository.Resi)
+	ret := m.ctrl.Call(m, "GetResiHistory", resiID)
+	ret0, _ := ret[0].(*model.TrackingHistory)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetResiStatus indicates an expected call of GetResiStatus.
-func (mr *MockTrackingRepositoryMockRecorder) GetResiStatus(id interface{}) *gomock.Call {
+// GetResiHistory indicates an expected call of GetResiHistory.
+func (mr *MockTrackingRepositoryMockRecorder) GetResiHistory(resiID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResiStatus", reflect.TypeOf((*MockTrackingRepository)(nil).GetResiStatus), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResiHistory", reflect.TypeOf((*MockTrackingRepository)(nil).GetResiHistory), resiID)
 }

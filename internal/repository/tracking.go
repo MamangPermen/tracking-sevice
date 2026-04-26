@@ -1,13 +1,8 @@
-// internal/repository/tracking.go
 package repository
 
-// struct buat nampung data resi
-type Resi struct {
-	ID     string
-	Status string
-}
+import "github.com/MamangPermen/tracking-service/internal/model"
 
-// interface untuk repository tracking
+// TrackingRepository menangani operasi pembacaan histori pelacakan (Read-Heavy).
 type TrackingRepository interface {
-	GetResiStatus(id string) (*Resi, error)
+	GetResiHistory(resiID string) (*model.TrackingHistory, error)
 }

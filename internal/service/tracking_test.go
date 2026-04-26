@@ -1,39 +1,37 @@
-// internal/service/tracking_test.go
 package service
 
 import (
 	"testing"
-
-	"github.com/MamangPermen/tracking-service/internal/repository"
+	"github.com/MamangPermen/tracking-service/internal/model"
 	"github.com/MamangPermen/tracking-service/internal/repository/mock"
 	"github.com/golang/mock/gomock"
 )
 
-func TestCheckStatus_Failed(t *testing.T) {
-	// Setup Gomock
+func TestGetHistory_Failed(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockRepo := mock.NewMockTrackingRepository(ctrl)
 
-	// expect DB pura-pura balikin status Delivered buat resi ini
-	dummyResi := &repository.Resi{ID: "TEST-12345", Status: "Delivered"}
-
-	// kirim request ke repo, expect balikin dummyResi
-	mockRepo.EXPECT().GetResiStatus("TEST-12345").Return(dummyResi, nil).Times(1)
-
-	// Inject mock repo ke service
-	svc := NewTrackingService(mockRepo)
-
-	// Eksekusi function-nya
-	result, err := svc.CheckStatus("TEST-12345")
-
-	if err != nil {
-		t.Fatalf("Unexpected error, but got: %v", err)
+	// Simulasi respons sukses dari database saat GetResiHistory dipanggil.
+	dummyHistory := &model.TrackingHistory{
+		ResiID: "BUBU-123",
+		History: []model.TrackingLog{
+			{ActivityCode: "TRANSIT", LocationCode: "CGK"},
+		},
 	}
 
-	// tes 
-	if result != "Delivered" {
-		t.Errorf("Test failed! Expected 'Delivered', got: '%v'", result)
+	mockRepo.EXPECT().GetResiHistory("BUBU-123").Return(dummyHistory, nil).Times(1)
+
+	svc := NewTrackingService(mockRepo)
+	result, err := svc.GetHistory("BUBU-123")
+
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	// Memastikan pengujian gagal karena panjang slice yang dikembalikan adalah nol.
+	if len(result.History) == 0 {
+		t.Errorf("Test failed! Expected transit history, but got empty slice")
 	}
 }
