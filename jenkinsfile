@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'tracking-service'
+        IMAGE_TAG = "v${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                // Menjalankan pengujian unit tanpa database
+                sh 'go test ./internal/service -v'
+            }
+        }
+
+        stage('Lint/Vet') {
+            steps {
+                // Memeriksa kualitas dan sintaksis kode
+                sh 'go vet ./...'
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                // Membangun image Docker
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+            }
+        }
+
+        stage('Functional Test') {
+            steps {
+                // Menjalankan pengujian fungsional dengan tag khusus
+                sh 'go test -tags=functional ./internal/service -v'
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                // Simulasi pengiriman image ke registry
+                echo "Pushing image to container registry..."
+                // sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+            }
+        }
+
+        stage('Deploy K8s') {
+            steps {
+                // Simulasi deployment ke cluster Kubernetes
+                echo "Applying Kubernetes manifests..."
+                // sh 'kubectl apply -f k8s/'
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                // Simulasi pengecekan status pod
+                echo "Verifying deployment status..."
+                // sh 'kubectl get pods -l app=tracking-service'
+            }
+        }
+    }
+}
