@@ -13,55 +13,64 @@ pipeline {
             }
         }
 
+        stage('Prepare') {
+            steps {
+                echo "Downloading dependencies..."
+                bat 'go mod download'
+            }
+        }
+
         stage('Unit Test') {
             steps {
-                // Menjalankan pengujian unit tanpa database
-                sh 'go test ./internal/service -v'
+                // Menggunakan ./... agar mengetes seluruh package secara rekursif
+                bat 'go test ./... -v'
             }
         }
 
         stage('Lint/Vet') {
             steps {
-                // Memeriksa kualitas dan sintaksis kode
-                sh 'go vet ./...'
+                bat 'go vet ./...'
             }
         }
 
         stage('Build Image') {
             steps {
-                // Membangun image Docker
-                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+                echo "Building Docker image with tags: ${IMAGE_TAG} and latest"
+                // Build dengan tag versi dan juga tag latest untuk sinkronisasi dengan k8s deployment
+                bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
             }
         }
 
         stage('Functional Test') {
             steps {
-                // Menjalankan pengujian fungsional dengan tag khusus
-                sh 'go test -tags=functional ./internal/service -v'
+                // Menjalankan test dengan build tag functional
+                bat 'go test -tags=functional ./internal/service -v'
             }
         }
 
         stage('Push Image') {
             steps {
-                // Simulasi pengiriman image ke registry
                 echo "Pushing image to container registry..."
-                // sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+                // bat "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                // bat "docker push ${IMAGE_NAME}:latest"
             }
         }
 
         stage('Deploy K8s') {
             steps {
-                // Simulasi deployment ke cluster Kubernetes
                 echo "Applying Kubernetes manifests..."
-                // sh 'kubectl apply -f k8s/'
+                // bat 'kubectl apply -f k8s/'
+                
+                // Tips: Jika ingin update image spesifik ke versi build:
+                // bat "kubectl set image deployment/tracking-service tracking-service=${IMAGE_NAME}:${IMAGE_TAG}"
             }
         }
 
         stage('Verify') {
             steps {
-                // Simulasi pengecekan status pod
                 echo "Verifying deployment status..."
-                // sh 'kubectl get pods -l app=tracking-service'
+                // Menggunakan rollout status lebih akurat daripada sekadar get pods
+                // bat 'kubectl rollout status deployment/tracking-service'
             }
         }
     }
