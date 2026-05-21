@@ -1,14 +1,24 @@
 package handler
 
-// EventConsumerHandler bertugas mendengarkan antrean pesan (misal: Kafka atau RabbitMQ).
+import (
+	"encoding/json"
+	"github.com/MamangPermen/tracking-service/internal/model"
+	"github.com/MamangPermen/tracking-service/internal/service"
+)
+
 type EventConsumerHandler struct {
-	// Ketergantungan ke layer broker dan service disuntikkan di sini
+	svc *service.LogEventService
 }
 
-// ConsumeLogEvent dipicu setiap kali ada event pemindaian paket baru masuk ke antrean.
-// Menangani proses penulisan bervolume tinggi (write-heavy) ke time-series database.
+func NewEventConsumerHandler(svc *service.LogEventService) *EventConsumerHandler {
+	return &EventConsumerHandler{svc: svc}
+}
+
 func (h *EventConsumerHandler) ConsumeLogEvent(message []byte) {
-	// Deserialisasi payload message ke struktur model.TrackingLog.
-	// Validasi integritas data (lokasi, kode aktivitas, dll).
-	// Pengiriman data ke layer repository untuk di-insert ke tabel log Cassandra/ScyllaDB.
+	var log model.TrackingLog
+	if err := json.Unmarshal(message, &log); err != nil {
+		return // Silently fail atau log error untuk background process
+	}
+	
+	_ = h.svc.ProcessLog(log)
 }

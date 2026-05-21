@@ -1,19 +1,32 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
+	"github.com/MamangPermen/tracking-service/internal/service"
 )
 
-// TrackingAPIHandler bertanggung jawab melayani endpoint REST/gRPC untuk sisi klien (web/app).
-// Harus stateless agar mudah di-scale up secara horizontal di Kubernetes.
 type TrackingAPIHandler struct {
-	// Ketergantungan ke layer service disuntikkan di sini
+	svc *service.TrackingService
 }
 
-// GetHistory menangani HTTP GET request untuk memuat riwayat pelacakan.
-// Operasi ini sangat read-heavy.
+func NewTrackingAPIHandler(svc *service.TrackingService) *TrackingAPIHandler {
+	return &TrackingAPIHandler{svc: svc}
+}
+
 func (h *TrackingAPIHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
-	// Ekstraksi parameter ID Resi dari URL.
-	// Pemanggilan layer service untuk mengambil data agregasi dari NoSQL.
-	// Konversi struktur data model.TrackingHistory ke format JSON untuk respons klien.
+	resiID := r.URL.Query().Get("resi_id")
+	if resiID == "" {
+		http.Error(w, "resi_id is required", http.StatusBadRequest)
+		return
+	}
+
+	history, err := h.svc.GetHistory(resiID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(history)
 }

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"github.com/MamangPermen/tracking-service/internal/model"
 	"github.com/MamangPermen/tracking-service/internal/repository"
 )
@@ -14,8 +13,10 @@ func NewLogEventService(repo repository.LogEventRepository) *LogEventService {
 	return &LogEventService{repo: repo}
 }
 
-// ProcessLog bertugas memvalidasi dan menyimpan log baru.
 func (s *LogEventService) ProcessLog(log model.TrackingLog) error {
-	// Dummy error buat testing
-	return errors.New("intentional error for testing purposes")
+	// Validasi sederhana sebelum simpan
+	if log.ResiID == "" {
+		return repository.ErrInvalidData
+	}
+	return s.repo.InsertLog(log)
 }
