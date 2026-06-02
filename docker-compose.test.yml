@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # 1. Database MongoDB untuk keperluan Functional / Integration Testing
+  mongodb:
+    image: mongo:6.0
+    container_name: tracking-service-test-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_test_data:/data/db
+
+  # 2. Test Runner yang memantau perubahan file untuk siklus TDD
+  test-runner:
+    image: golang:1.21-alpine # Sesuaikan dengan versi Go Anda atau gunakan golang:alpine
+    container_name: tracking-service-test-runner
+    # Trik Docker Network: Berbagi network namespace dengan mongodb
+    # Membuat 'localhost:27017' di dalam test-runner langsung mengarah ke MongoDB container!
+    network_mode: "service:mongodb"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - CGO_ENABLED=0
+    # Mengunduh 'gow' (Go Watch) untuk memantau perubahan kode secara real-time
+    # gow akan menjalankan ulang seluruh test (Unit & Functional) setiap kali Anda menyimpan file
+    command: >
+      sh -c "
+      apk add --no-cache git &&
+      echo 'Mengunduh gow untuk TDD Watch Mode...' &&
+      go install github.com/mitranim/gow@latest &&
+      echo 'Menjalankan TDD Loop...' &&
+      gow -c test -tags=functional ./... -v
+      "
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo_test_data:
